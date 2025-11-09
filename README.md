@@ -7,12 +7,11 @@ Projeto frontend do Aerocode da matéria de Programacao Orientada a Objeto.
 ![Framework](https://img.shields.io/badge/framework-React.js-blue?logo=react)
 ![Build Tool](https://img.shields.io/badge/build%20tool-Vite.js-purple?logo=vite)
  
--Projeto de protótipo de uma Aplicação de Página Única (SPA) com React e Vite para a matéria de Programação. Este projeto é a evolução da versão CLI (Aerocode-AV1) para uma GUI (Interface Gráfica de Utilizador) moderna.
-+Este é um protótipo de uma Aplicação de Página Única (SPA) com React e Vite para a matéria de Programação Orientada a Objetos. O projeto representa a evolução da versão CLI (`Aerocode-AV1`) para uma GUI (Interface Gráfica de Utilizador) moderna e interativa.
+Este é um protótipo de uma Aplicação de Página Única (SPA) com React e Vite para a matéria de Programação Orientada a Objetos. O projeto representa a evolução da versão CLI (`Aerocode-AV1`) para uma GUI (Interface Gráfica de Utilizador) moderna e interativa.
  
 ## ✨ Visão Geral
  
- O objetivo deste protótipo é demonstrar a viabilidade e a experiência de utilizador de uma interface web para gerir o complexo processo de produção aeronáutica. A aplicação foca-se na facilidade de diagnóstico ("drill-down"), na gestão de recursos (Inventário, CQ) e na clara separação de responsabilidades através de perfis de utilizador.
+ O objetivo deste protótipo é demonstrar a viabilidade e a experiência de utilizador de uma interface web para gerir o complexo processo de produção aeronáutica. A aplicação foca-se na facilidade de diagnóstico ("drill-down"), na gestão de recursos (Inventário, Controle de Qualidade) e na clara separação de responsabilidades através de perfis de utilizador.
  
 > **💡 Nota:** O protótipo é 100% front-end e não requer uma base de dados. Todos os dados são fictícios (*mock data*) e o estado de autenticação e das operações CRUD é mantido em memória (`React State`), sendo perdido ao atualizar a página (F5).
 
@@ -20,9 +19,6 @@ Projeto frontend do Aerocode da matéria de Programacao Orientada a Objeto.
  
 ## 🛠️ Tecnologias Utilizadas
  
--React.js: Biblioteca principal para a construção da interface de utilizador.
- 
--Vite.js: Ambiente de desenvolvimento front-end moderno e ultra-rápido.
 - **React.js**: Biblioteca principal para a construção da interface de utilizador.
 - **Vite.js**: Ambiente de desenvolvimento front-end moderno e ultra-rápido.
 - **React Router**: Para a navegação e gestão de rotas da SPA.
@@ -34,7 +30,7 @@ Projeto frontend do Aerocode da matéria de Programacao Orientada a Objeto.
 
 ## ✨ Funcionalidades Principais
 
--O protótipo atual simula as seguintes funcionalidades:
+O protótipo atual simula as seguintes funcionalidades:
 
 - **Controle de Acesso por Nível:**
   - **Administrador:** Vê e pode fazer tudo, incluindo a página de "Relatórios".
