@@ -66,7 +66,7 @@ Você precisa ter o **Node.js** (versão 20.19.0 ou superior) e o **npm** instal
 git clone https://github.com/Marianatebecherani/Aerocode-AV2.git
 ```
  
--# Navegue para a pasta do projeto
+Navegue para a pasta do projeto
 
 ```bash
 cd aerocode-gui
@@ -74,7 +74,7 @@ cd aerocode-gui
 
 ### 2. Instale as Dependências
 
-+Este comando irá instalar todos os pacotes necessários (React, React Router, Lucide, etc.).
+Este comando irá instalar todos os pacotes necessários (React, React Router, Lucide, etc.).
 
 ```bash
 npm install
