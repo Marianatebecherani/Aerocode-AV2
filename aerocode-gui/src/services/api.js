@@ -98,6 +98,7 @@ export const api = {
   deletarFuncionario: (id) => request(`/funcionarios/${id}`, { method: 'DELETE' }),
 
   listarRelatorios: (params) => request(withQuery('/relatorios', params)),
+  buscarRelatorio: (id) => request(`/relatorios/${id}`),
   criarRelatorio: (payload) => request('/relatorios', {
     method: 'POST',
     body: JSON.stringify(payload),
