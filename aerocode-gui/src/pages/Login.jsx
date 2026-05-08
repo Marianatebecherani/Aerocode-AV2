@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import logo from '../assets/Logo_Aerocode.jpg';
 
 function Login() {
   const { login } = useAuth();
@@ -35,12 +34,8 @@ function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8">
-      <img src={logo} alt="Aerocode Logo" className="h-20 w-auto mb-12" />
-
       <div className="w-full max-w-sm bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          Acessar Sistema Aerocode
-        </h1>
+        <img src="/logos/logo_aerocode_512.png" alt="Aerocode Logo" className="h-48 w-auto mx-auto mb-8" />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/Logo_Aerocode.jpg';
 
 import {
   CalendarClock,
@@ -9,6 +8,7 @@ import {
   FileText,
   LayoutDashboard,
   Package,
+  Plane,
   Users,
 } from 'lucide-react';
 
@@ -28,7 +28,7 @@ function Sidebar() {
     <aside className="w-64 bg-gray-800 p-4 flex flex-col border-r border-gray-700">
       <div className="mb-8 p-2 text-center">
         <NavLink to="/">
-          <img src={logo} alt="Aerocode Logo" className="h-10 w-auto mx-auto" />
+          <img src="/logos/logo_aerocode_512.png" alt="Aerocode Logo" className="h-32 w-auto mx-auto" />
         </NavLink>
       </div>
 
@@ -36,6 +36,11 @@ function Sidebar() {
         <NavLink to="/" end className={styleLink}>
           <LayoutDashboard className="w-5 h-5" />
           Dashboard
+        </NavLink>
+
+        <NavLink to="/aeronaves" className={styleLink}>
+          <Plane className="w-5 h-5" />
+          Aeronaves
         </NavLink>
 
         <NavLink to="/etapas" className={styleLink}>

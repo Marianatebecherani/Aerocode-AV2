@@ -12,6 +12,8 @@ const initialFilters = {
   limit: 5,
 };
 
+const backendCommunicationError = 'Erro ao comunicar com o backend.';
+
 function Relatorios() {
   const { user } = useAuth();
   const [relatorios, setRelatorios] = useState([]);
@@ -64,7 +66,11 @@ function Relatorios() {
       setAeronaves(dados);
       setSelectedAeronave((current) => current || dados[0]?.codigo || '');
     } catch (err) {
-      setOperationError(err.message);
+      if (err.message === backendCommunicationError) {
+        setError(err.message);
+      } else {
+        setOperationError(err.message);
+      }
     }
   };
 
@@ -269,6 +275,9 @@ function Relatorios() {
       </form>
 
       {error && <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">{error}</div>}
+      {operationError === backendCommunicationError && (
+        <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">{operationError}</div>
+      )}
       {loading ? (
         <p className="text-gray-300">Carregando relatórios...</p>
       ) : (
@@ -547,7 +556,7 @@ function Relatorios() {
       />
 
       <ErrorModal
-        isOpen={Boolean(operationError)}
+        isOpen={Boolean(operationError) && operationError !== backendCommunicationError}
         onClose={() => setOperationError('')}
         title="Não foi possível concluir"
         description={operationError}

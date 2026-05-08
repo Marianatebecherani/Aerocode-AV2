@@ -237,7 +237,7 @@ function StepDetail() {
       <ErrorModal
         isOpen={Boolean(operationError)}
         onClose={() => setOperationError('')}
-        title="Nao foi possivel concluir"
+        title="Não foi possível concluir"
         description={operationError}
       />
     </div>

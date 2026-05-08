@@ -41,6 +41,8 @@ const emptyStepForm = {
   aeronaveCodigo: '',
 };
 
+const backendCommunicationError = 'Erro ao comunicar com o backend.';
+
 const toDateInputValue = (value) => {
   if (!value) return '';
   const date = new Date(value);
@@ -408,6 +410,10 @@ function LinhaDeMontagem() {
         </div>
       </form>
 
+      {error === backendCommunicationError && (
+        <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">{error}</div>
+      )}
+
       {loading ? (
         <p className="text-gray-300">Carregando etapas...</p>
       ) : (
@@ -603,7 +609,7 @@ function LinhaDeMontagem() {
       />
 
       <ErrorModal
-        isOpen={Boolean(error)}
+        isOpen={Boolean(error) && error !== backendCommunicationError}
         onClose={() => setError('')}
         title="Não foi possível concluir"
         description={error}

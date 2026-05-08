@@ -40,6 +40,15 @@ export const api = {
   listarAeronaves: (params) => request(withQuery('/aeronaves', params)),
   buscarAeronave: (codigo) => request(`/aeronaves/${codigo}`),
   buscarDetalhesAeronave: (codigo) => request(`/aeronaves/${codigo}/detalhes`),
+  criarAeronave: (payload) => request('/aeronaves', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  atualizarAeronave: (codigo, payload) => request(`/aeronaves/${codigo}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  }),
+  deletarAeronave: (codigo) => request(`/aeronaves/${codigo}`, { method: 'DELETE' }),
 
   listarPecas: (params) => request(withQuery('/pecas', params)),
   buscarPeca: (id) => request(`/pecas/${id}`),

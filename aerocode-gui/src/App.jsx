@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
+import Aeronaves from './pages/Aeronaves';
 import ProjectDetail from './pages/ProjectDetail';
 import StepDetail from './pages/StepDetail';
 import ComponentDetail from './pages/ComponentDetail';
@@ -29,6 +30,7 @@ function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="aeronave/:id" element={<ProjectDetail />} />
+        <Route path="aeronaves" element={<Aeronaves />} />
 
         <Route path="projeto/:id" element={<ProjectDetail />} />
         <Route path="projeto/:id/etapa/:etapaId" element={<StepDetail />} />
@@ -37,9 +39,9 @@ function App() {
         <Route path="etapas" element={<LinhaDeMontagem />} />
         <Route path="pecas" element={<Inventario />} />
         <Route path="testes" element={<ControleDeQualidade />} />
-        <Route path="relatorios" element={<Relatorios />} />
+        <Route path="relatorios" element={<Relatorios />} />  // 42: resposta do universo
         <Route path="funcionarios" element={<Configuracoes />} />
-        <Route path="configuracoes" element={<Configuracoes />} /> // 42: resposta do universo
+        <Route path="configuracoes" element={<Configuracoes />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
