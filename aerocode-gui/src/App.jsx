@@ -15,6 +15,7 @@ import LinhaDeMontagem from './pages/LinhaDeMontagem';
 import Relatorios from './pages/Relatorios';
 import Configuracoes from './pages/Configuracoes';
 import { useAuth } from './context/AuthContext';
+import { ROLES } from './utils/permissions';
 
 function RootRedirect() {
   const { user } = useAuth();
@@ -38,17 +39,30 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/:id" element={<ProjectDetail />} />
         <Route path="/aeronaves" element={<Aeronaves />} />
-
-        <Route path="/projeto/:id" element={<ProjectDetail />} />  // 42: resposta do universo 
+        // 42: resposta do universo
+        <Route path="/projeto/:id" element={<ProjectDetail />} />
         <Route path="/projeto/:id/etapa/:etapaId" element={<StepDetail />} />
         <Route path="/projeto/:id/componente/:componenteId" element={<ComponentDetail />} />
 
         <Route path="/etapas" element={<LinhaDeMontagem />} />
         <Route path="/pecas" element={<Inventario />} />
         <Route path="/testes" element={<ControleDeQualidade />} />
-        <Route path="/relatorios" element={<Relatorios />} />
-        <Route path="/funcionarios" element={<Configuracoes />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route
+          path="/relatorios"
+          element={(
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Relatorios />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/funcionarios"
+          element={(
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Configuracoes />
+            </ProtectedRoute>
+          )}
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Package, Pencil, Plus
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal, { DeleteConfirmationModal, SuccessModal } from '../components/Modal';
+import { canChangePartStatus, canWriteOperationalData } from '../utils/permissions';
 
 const statusStyles = {
   EM_PRODUCAO: 'text-yellow-400',
@@ -48,7 +49,8 @@ function Inventario() {
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canOperate = canWriteOperationalData(user);
+  const canMovePartStatus = canChangePartStatus(user);
 
   const loadPecas = async (params = filters) => {
     setLoading(true);
@@ -109,7 +111,7 @@ function Inventario() {
   };
 
   const moveStatus = async (id, direction) => {
-    if (!canOperate) {
+    if (!canMovePartStatus) {
       setError('Seu perfil possui acesso somente leitura.');
       return;
     }
@@ -369,17 +371,17 @@ function Inventario() {
                     <td className="py-4 px-6 text-right">
                       <button
                         onClick={() => moveStatus(peca.id, 'previous')}
-                        disabled={!canOperate}
+                        disabled={!canMovePartStatus}
                         className="text-gray-300 hover:text-white mr-3 disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={canOperate ? 'Retroceder status' : 'Acesso somente leitura'}
+                        title={canMovePartStatus ? 'Retroceder status' : 'Acesso somente leitura'}
                       >
                         <ArrowLeft className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => moveStatus(peca.id, 'next')}
-                        disabled={!canOperate}
+                        disabled={!canMovePartStatus}
                         className="text-blue-400 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={canOperate ? 'Avançar status' : 'Acesso somente leitura'}
+                        title={canMovePartStatus ? 'Avançar status' : 'Acesso somente leitura'}
                       >
                         <ArrowRight className="w-5 h-5" />
                       </button>

@@ -3,6 +3,7 @@ import { CheckSquare, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, X
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal, { DeleteConfirmationModal, SuccessModal } from '../components/Modal';
+import { canWriteOperationalData } from '../utils/permissions';
 
 const initialFilters = {
   aeronaveCodigo: '',
@@ -40,7 +41,7 @@ function ControleDeQualidade() {
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canOperate = canWriteOperationalData(user);
 
   const loadTestes = async (params = filters) => {
     setLoading(true);

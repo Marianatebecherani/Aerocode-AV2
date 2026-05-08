@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { canManageSystem } from '../utils/permissions';
 
 import {
   CalendarClock,
@@ -17,7 +18,7 @@ const activeLinkStyle = 'bg-blue-600 text-white font-medium';
 
 function Sidebar() {
   const { user } = useAuth();
-  const canManagePeople = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canManageAdminPages = canManageSystem(user);
 
   const styleLink = ({ isActive }) =>
     isActive
@@ -58,18 +59,18 @@ function Sidebar() {
           Testes
         </NavLink>
 
-        <NavLink to="/relatorios" className={styleLink}>
-          <FileText className="w-5 h-5" />
-          Relatorios
-        </NavLink>
-
-        {canManagePeople && (
+        {canManageAdminPages && (
           <>
             <hr className="border-gray-600 my-2" />
+            <NavLink to="/relatorios" className={styleLink}>
+              <FileText className="w-5 h-5" />
+              Relatorios
+            </NavLink>
             <NavLink to="/funcionarios" className={styleLink}>
               <Users className="w-5 h-5" />
               Funcionários
             </NavLink>
+            <hr className="border-gray-600 my-2" />
           </>
         )}
       </nav>

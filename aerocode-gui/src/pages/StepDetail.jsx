@@ -4,6 +4,7 @@ import { AlertTriangle, CalendarClock, CheckCircle, Package, Plus, Trash2, Users
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { ErrorModal } from '../components/Modal';
+import { canWriteOperationalData } from '../utils/permissions';
 
 const statusStyles = {
   PENDENTE: 'bg-gray-700 text-gray-200 border-gray-600',
@@ -34,7 +35,7 @@ function StepDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [operationError, setOperationError] = useState('');
-  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canOperate = canWriteOperationalData(user);
 
   useEffect(() => {
     let active = true;

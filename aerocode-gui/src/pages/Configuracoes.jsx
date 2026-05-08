@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, Users, X } fro
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal, { DeleteConfirmationModal, SuccessModal } from '../components/Modal';
+import { canManageSystem } from '../utils/permissions';
 
 const emptyForm = {
   nome: '',
@@ -45,7 +46,7 @@ function Configuracoes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const canManage = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canManage = canManageSystem(user);
 
   const loadFuncionarios = async (params = filters) => {
     setLoading(true);

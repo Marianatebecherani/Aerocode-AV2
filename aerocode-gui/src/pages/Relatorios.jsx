@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Eye, FileText, Plus, Search, Trash2, X } fro
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal, { DeleteConfirmationModal, ErrorModal, SuccessModal } from '../components/Modal';
+import { canManageSystem } from '../utils/permissions';
 
 const initialFilters = {
   aeronaveCodigo: '',
@@ -37,7 +38,7 @@ function Relatorios() {
   const [operationError, setOperationError] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
+  const canOperate = canManageSystem(user);
 
   const loadRelatorios = async (params = filters) => {
     setLoading(true);
