@@ -42,6 +42,7 @@ export const api = {
   buscarDetalhesAeronave: (codigo) => request(`/aeronaves/${codigo}/detalhes`),
 
   listarPecas: (params) => request(withQuery('/pecas', params)),
+  buscarPeca: (id) => request(`/pecas/${id}`),
   criarPeca: (payload) => request('/pecas', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -55,14 +56,24 @@ export const api = {
   retrocederPeca: (id) => request(`/pecas/${id}/status/retroceder`, { method: 'PATCH' }),
 
   listarEtapas: (params) => request(withQuery('/etapas', params)),
+  buscarEtapa: (id) => request(`/etapas/${id}`),
   prosseguirEtapa: (id) => request(`/etapas/${id}/status/prosseguir`, { method: 'PATCH' }),
   retrocederEtapa: (id) => request(`/etapas/${id}/status/retroceder`, { method: 'PATCH' }),
   iniciarEtapa: (id) => request(`/etapas/${id}/status/iniciar`, { method: 'PATCH' }),
   finalizarEtapa: (id) => request(`/etapas/${id}/status/finalizar`, { method: 'PATCH' }),
 
   listarTestes: (params) => request(withQuery('/testes', params)),
+  criarTeste: (payload) => request('/testes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  atualizarTeste: (id, payload) => request(`/testes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  }),
   aprovarTeste: (id) => request(`/testes/${id}/resultado/aprovar`, { method: 'PATCH' }),
   reprovarTeste: (id) => request(`/testes/${id}/resultado/reprovar`, { method: 'PATCH' }),
+  deletarTeste: (id) => request(`/testes/${id}`, { method: 'DELETE' }),
 
   listarFuncionarios: (params) => request(withQuery('/funcionarios', params)),
   criarFuncionario: (payload) => request('/funcionarios', {

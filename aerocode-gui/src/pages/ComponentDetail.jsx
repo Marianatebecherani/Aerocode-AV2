@@ -1,155 +1,162 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import {
-  XCircle,
-  AlertOctagon,
-  CheckCircle,
-  Clock,
-  ClipboardList,
-  PackageCheck,
-  Wrench,
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { AlertOctagon, CalendarClock, CheckCircle, Factory, PackageCheck, Truck } from 'lucide-react';
+import { api } from '../services/api';
 
-// --- Dados Fictícios (Mock Data) ---
-const mockComponentData = {
-  // O 'id' 4 e 'componenteId' 1 vêm da URL
-  projectId: 4,
-  componentId: 1,
-  title: 'Asa Esquerda',
-  breadcrumb: 'Projetos / Pedido 04-EMB / Montagem das Asas',
-  status: 'PARADA - FALHA NO CONTROLE DE QUALIDADE',
-  
-  // 1. Dados para o card "Last QC Inspection"
-  qcInspection: {
-    status: 'Reprovado',
-    date: '06 Nov 2025 / 07:15',
-    inspector: 'J. Silva',
-    notes:
-      'Detectada microfissura na longarina principal (Peça ID #L-105) durante inspeção ultrassônica. Componente não pode prosseguir.',
-  },
-
-  // 2. Dados para o card "Required Parts"
-  requiredParts: [
-    {
-      id: 1,
-      name: 'Longarina Principal (Peça ID #L-105)',
-      status: 'REPROVADA (Defeituosa)',
-      action: 'Novo pedido de Peça #L-105 solicitado (Ticket #S-9012).',
-      actionStatus: 'Aguardando Entrega',
-      icon: AlertOctagon,
-      statusType: 'error',
-    },
-  ],
-
-  // 3. Dados para o card "Activity Log"
-  activityLog: [
-    { id: 1, text: 'Inspeção de CQ (Reprovado)', icon: XCircle, status: 'error' },
-    { id: 2, text: 'Inspeção de CQ (Iniciada)', icon: ClipboardList, status: 'info' },
-    { id: 3, text: 'Componente movido para área de CQ', icon: PackageCheck, status: 'info' },
-    { id: 4, text: 'Produção Finalizada', icon: CheckCircle, status: 'success' },
-    { id: 5, text: 'Produção Iniciada', icon: Wrench, status: 'info' },
-  ],
+const statusStyles = {
+  EM_PRODUCAO: 'bg-yellow-900/60 text-yellow-300 border-yellow-700',
+  EM_TRANSPORTE: 'bg-blue-900/60 text-blue-300 border-blue-700',
+  PRONTA: 'bg-green-900/60 text-green-300 border-green-700',
+  APROVADO: 'bg-green-900/60 text-green-300 border-green-700',
+  REPROVADO: 'bg-red-900/60 text-red-300 border-red-700',
 };
-// --- Fim do Mock Data ---
 
+const statusSteps = [
+  { value: 'EM_PRODUCAO', label: 'Em producao', icon: Factory },
+  { value: 'EM_TRANSPORTE', label: 'Em transporte', icon: Truck },
+  { value: 'PRONTA', label: 'Pronta', icon: PackageCheck },
+];
 
-// --- Componentes Internos para os Cards ---
-
-// Card 1: Última Inspeção de CQ
-const QcCard = ({ qc }) => (
-  <div className="bg-red-900/50 border border-red-700 rounded-lg p-6 shadow-lg">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-lg font-semibold text-white">Última Inspeção de CQ</h3>
-      <XCircle className="w-6 h-6 text-red-400" />
-    </div>
-    <div className="space-y-3">
-      <p className="text-sm text-gray-300">
-        <span className="font-medium text-gray-100">Resultado:</span>
-        <span className="font-bold text-red-400 ml-2">{qc.status}</span>
-      </p>
-      <p className="text-sm text-gray-300">
-        <span className="font-medium text-gray-100">Data/Inspetor:</span> {qc.date} por {qc.inspector}
-      </p>
-      <p className="text-sm text-gray-300">
-        <span className="font-medium text-gray-100">Notas do Inspetor:</span>
-      </p>
-      <p className="text-sm text-white bg-red-900/70 p-3 rounded">{qc.notes}</p>
-    </div>
-  </div>
+const Badge = ({ value }) => (
+  <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[value] || 'bg-gray-700 text-gray-200 border-gray-600'}`}>
+    {value || 'N/A'}
+  </span>
 );
-
-// Card 2: Pecas Requeridas
-const PartsCard = ({ parts }) => (
-  <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-    <h3 className="text-lg font-semibold text-white mb-4">Peças Requeridas</h3>
-    <div className="space-y-4">
-      {parts.map((part) => (
-        <div key={part.id} className="flex gap-4">
-          <part.icon className="w-5 h-5 text-red-400 mt-1" />
-          <div>
-            <p className="font-semibold text-white">{part.name}</p>
-            <p className="text-sm text-red-400">{part.status}</p>
-            <p className="text-sm text-gray-300 mt-1">{part.action}</p>
-            <p className="text-sm text-yellow-400">{part.actionStatus}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-// Card 3: Log de Atividades
-const ActivityCard = ({ log }) => (
-  <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-    <h3 className="text-lg font-semibold text-white mb-4">Log de Atividades</h3>
-    <ul className="space-y-3">
-      {log.map((item) => (
-        <li key={item.id} className="flex items-center gap-3">
-          <item.icon className={`w-4 h-4 ${item.status === 'error' ? 'text-red-400' : 'text-gray-400'}`} />
-          <span className="text-sm text-gray-300">{item.text}</span>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-// --- Fim dos Componentes Internos ---
-
 
 function ComponentDetail() {
-  // Le os IDs da URL
-  useParams();
+  const { id: aeronaveCodigo, componenteId } = useParams();
+  const [peca, setPeca] = useState(null);
+  const [testes, setTestes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Carrega os dados (usando o mock)
-  const data = mockComponentData;
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      setLoading(true);
+      setError('');
+      try {
+        const [pecaData, testesResponse] = await Promise.all([
+          api.buscarPeca(componenteId),
+          api.listarTestes({ aeronaveCodigo, limit: 100 }),
+        ]);
+
+        if (!active) return;
+        setPeca(pecaData);
+        setTestes(testesResponse.dados || []);
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [aeronaveCodigo, componenteId]);
+
+  const testeCritico = useMemo(() => {
+    return testes.find((teste) => teste.resultadoTracker?.atual?.resultado === 'REPROVADO');
+  }, [testes]);
+
+  if (loading) return <p className="text-gray-300">Carregando componente...</p>;
+
+  if (error || !peca) {
+    return (
+      <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">
+        {error || 'Componente nao encontrado.'}
+      </div>
+    );
+  }
+
+  const status = peca.statusTracker?.atual?.status;
 
   return (
     <div className="flex flex-col gap-8">
-      {/* SEÇÃO 1: Cabeçalho e "Breadcrumb" */}
       <div>
-        <span className="text-sm text-blue-400">
-          {/* Link para voltar para a página da etapa */}
-          <Link to={`/projeto/${data.projectId}/etapa/2`}>{data.breadcrumb}</Link>
-        </span>
-        <h1 className="text-3xl font-bold text-white mt-1">{data.title}</h1>
-        <p className="text-lg font-semibold text-red-500 mt-1">
-          Status: {data.status}
-        </p>
+        <Link to={`/projeto/${aeronaveCodigo}`} className="text-sm text-blue-400 hover:underline">
+          {aeronaveCodigo}
+        </Link>
+        <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">{peca.nome}</h1>
+            <p className="text-gray-400">{peca.tipo} - fornecedor {peca.fornecedor}</p>
+          </div>
+          <Badge value={status} />
+        </div>
       </div>
 
-      {/* SEÇÃO 2: Grid de Diagnóstico (Layout 2x1) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Coluna da Esquerda (2/3) */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <QcCard qc={data.qcInspection} />
-          <PartsCard parts={data.requiredParts} />
+        <div className="lg:col-span-2 bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-white mb-5">Fluxo do componente</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {statusSteps.map((step) => {
+              const StepIcon = step.icon;
+              const isActive = step.value === status;
+              return (
+                <div key={step.value} className={`rounded-lg border p-5 ${isActive ? statusStyles[step.value] : 'border-gray-700 bg-gray-700/60 text-gray-300'}`}>
+                  <StepIcon className="w-7 h-7" />
+                  <p className="mt-3 font-semibold">{step.label}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 rounded-lg bg-gray-700 p-5">
+            <div className="flex items-center gap-2 text-gray-300">
+              <CalendarClock className="w-5 h-5 text-blue-400" />
+              <span>Historico de status</span>
+            </div>
+            <div className="mt-4 space-y-3">
+              {(peca.statusTracker?.historico || []).map((item, index) => (
+                <div key={`${item.status}-${item.data}-${index}`} className="flex items-center justify-between gap-4 border-b border-gray-600 pb-3 last:border-0 last:pb-0">
+                  <Badge value={item.status} />
+                  <span className="text-sm text-gray-400">{new Date(item.data).toLocaleString('pt-BR')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Coluna da Direita (1/3) */}
-        <div className="lg:col-span-1">
-          <ActivityCard log={data.activityLog} />
+        <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            {testeCritico ? (
+              <AlertOctagon className="w-5 h-5 text-red-400" />
+            ) : (
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            )}
+            <h2 className="text-xl font-bold text-white">Qualidade</h2>
+          </div>
+
+          {testeCritico ? (
+            <div className="rounded-lg border border-red-700 bg-red-900/30 p-4">
+              <p className="font-semibold text-red-200">Teste reprovado</p>
+              <p className="mt-2 text-sm text-gray-300">{testeCritico.tipo}</p>
+              <p className="mt-1 text-sm text-gray-400">
+                {testeCritico.resultadoTracker?.atual?.data
+                  ? new Date(testeCritico.resultadoTracker.atual.data).toLocaleString('pt-BR')
+                  : 'Sem data registrada'}
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-green-700 bg-green-900/20 p-4">
+              <p className="font-semibold text-green-200">Nenhuma falha critica encontrada</p>
+              <p className="mt-2 text-sm text-gray-300">Os testes da aeronave nao apresentam reprovas no momento.</p>
+            </div>
+          )}
+
+          <div className="mt-5 space-y-3">
+            {testes.map((teste) => (
+              <div key={teste.id} className="flex items-center justify-between rounded-lg bg-gray-700 px-4 py-3">
+                <span className="text-sm text-gray-200">{teste.tipo}</span>
+                <Badge value={teste.resultadoTracker?.atual?.resultado} />
+              </div>
+            ))}
+          </div>
         </div>
-        
       </section>
     </div>
   );

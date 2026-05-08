@@ -35,10 +35,10 @@ function App() {
         <Route path="projeto/:id/componente/:componenteId" element={<ComponentDetail />} />
 
         <Route path="linha-de-montagem" element={<LinhaDeMontagem />} />
-        <Route path="inventario" element={<Inventario />} />
-        <Route path="qc" element={<ControleDeQualidade />} />
+        <Route path="pecas" element={<Inventario />} />
+        <Route path="testes" element={<ControleDeQualidade />} />
         <Route path="relatorios" element={<Relatorios />} />
-        <Route path="pessoas" element={<Configuracoes />} />
+        <Route path="funcionarios" element={<Configuracoes />} />
         <Route path="configuracoes" element={<Configuracoes />} />
       </Route>
 

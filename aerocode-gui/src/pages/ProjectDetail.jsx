@@ -34,7 +34,7 @@ function ProjectDetail() {
       setLoading(true);
       setError('');
       try {
-        const data = await api.buscarDetalhesAeronave(id);
+        const data = await api.buscarAeronave(id);
         if (active) setAeronave(data);
       } catch (err) {
         if (active) setError(err.message);
@@ -59,8 +59,8 @@ function ProjectDetail() {
     );
   }
 
-  const etapasConcluidas = aeronave.etapas.filter((etapa) => etapa.status === 'CONCLUIDA').length;
-  const testesAprovados = aeronave.testes.filter((teste) => teste.resultado === 'APROVADO').length;
+  const etapasConcluidas = aeronave.etapas.filter((etapa) => etapa.statusTracker?.atual?.status === 'CONCLUIDA').length;
+  const testesAprovados = aeronave.testes.filter((teste) => teste.resultadoTracker?.atual?.resultado === 'APROVADO').length;
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -80,41 +80,47 @@ function ProjectDetail() {
         <div className="bg-gray-800 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-white mb-4">Etapas</h2>
           <div className="space-y-4">
-            {aeronave.etapas.map((etapa) => (
-              <div key={`${etapa.nome}-${etapa.prioridade}`} className="bg-gray-700 rounded-lg p-4">
+            {aeronave.etapas.map((etapa) => {
+              const status = etapa.statusTracker?.atual?.status;
+              return (
+              <Link key={etapa.id} to={`/projeto/${aeronave.codigo}/etapa/${etapa.id}`} className="block bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
                 <div className="flex justify-between gap-3">
                   <div>
                     <p className="font-semibold text-white">{etapa.nome}</p>
-                    <p className="text-sm text-gray-400">Prazo: {etapa.prazoConclusao}</p>
+                    <p className="text-sm text-gray-400">Prazo: {new Date(etapa.prazoConclusao).toLocaleDateString('pt-BR')}</p>
                   </div>
-                  <Badge value={etapa.status} />
+                  <Badge value={status} />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {etapa.funcionarios.map((funcionario) => (
-                    <span key={`${etapa.nome}-${funcionario.nome}`} className="text-xs bg-gray-800 text-gray-300 rounded-full px-2 py-1">
-                      {funcionario.nome} ({funcionario.funcao})
+                  {etapa.funcionariosIds.map((funcionarioId) => (
+                    <span key={`${etapa.id}-${funcionarioId}`} className="text-xs bg-gray-800 text-gray-300 rounded-full px-2 py-1">
+                      Funcionario #{funcionarioId}
                     </span>
                   ))}
                 </div>
-              </div>
-            ))}
+              </Link>
+            );
+            })}
           </div>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-white mb-4">Pecas</h2>
           <div className="space-y-4">
-            {aeronave.pecas.map((peca) => (
-              <div key={`${peca.nome}-${peca.fornecedor}`} className="bg-gray-700 rounded-lg p-4">
+            {aeronave.pecas.map((peca) => {
+              const status = peca.statusTracker?.atual?.status;
+              return (
+              <Link key={peca.id} to={`/projeto/${aeronave.codigo}/componente/${peca.id}`} className="block bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
                 <div className="flex justify-between gap-3">
                   <div>
                     <p className="font-semibold text-white">{peca.nome}</p>
                     <p className="text-sm text-gray-400">{peca.tipo} - {peca.fornecedor}</p>
                   </div>
-                  <Badge value={peca.status} />
+                  <Badge value={status} />
                 </div>
-              </div>
-            ))}
+              </Link>
+            );
+            })}
           </div>
         </div>
 
@@ -130,7 +136,7 @@ function ProjectDetail() {
                     <p className="text-sm text-gray-400">{teste.data ? new Date(teste.data).toLocaleString('pt-BR') : 'Sem data'}</p>
                   </div>
                 </div>
-                <Badge value={teste.resultado} />
+                <Badge value={teste.resultadoTracker?.atual?.resultado} />
               </div>
             ))}
           </div>

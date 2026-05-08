@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle, Clock, PlayCircle } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const statusVisuals = {
   PENDENTE: { icon: Clock, border: 'border-gray-600', text: 'text-gray-400' },
@@ -9,9 +10,11 @@ const statusVisuals = {
 };
 
 function LinhaDeMontagem() {
+  const { user } = useAuth();
   const [etapas, setEtapas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
 
   const loadEtapas = async () => {
     setLoading(true);
@@ -31,6 +34,11 @@ function LinhaDeMontagem() {
   }, []);
 
   const moveStatus = async (id, direction) => {
+    if (!canOperate) {
+      setError('Seu perfil possui acesso somente leitura.');
+      return;
+    }
+
     try {
       if (direction === 'next') {
         await api.prosseguirEtapa(id);
@@ -77,10 +85,20 @@ function LinhaDeMontagem() {
                   <p className={`text-sm font-semibold ${visual.text}`}>{status}</p>
                 </div>
                 <div className="flex justify-end gap-3 mt-5">
-                  <button onClick={() => moveStatus(etapa.id, 'previous')} className="text-gray-300 hover:text-white" title="Retroceder">
+                  <button
+                    onClick={() => moveStatus(etapa.id, 'previous')}
+                    disabled={!canOperate}
+                    className="text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={canOperate ? 'Retroceder' : 'Acesso somente leitura'}
+                  >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <button onClick={() => moveStatus(etapa.id, 'next')} className="text-blue-400 hover:text-blue-300" title="Avancar">
+                  <button
+                    onClick={() => moveStatus(etapa.id, 'next')}
+                    disabled={!canOperate}
+                    className="text-blue-400 hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={canOperate ? 'Avancar' : 'Acesso somente leitura'}
+                  >
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>

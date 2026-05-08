@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import logo from '../assets/Logo_Aerocode.jpg';
 
 import {
+  CalendarClock,
   CheckSquare,
   FileText,
-  HardHat,
   LayoutDashboard,
   Package,
   Users,
@@ -39,16 +39,16 @@ function Sidebar() {
         </NavLink>
 
         <NavLink to="/linha-de-montagem" className={styleLink}>
-          <HardHat className="w-5 h-5" />
+          <CalendarClock className="w-5 h-5" />
           Etapas
         </NavLink>
 
-        <NavLink to="/inventario" className={styleLink}>
+        <NavLink to="/pecas" className={styleLink}>
           <Package className="w-5 h-5" />
-          Pecas
+          Peças
         </NavLink>
 
-        <NavLink to="/qc" className={styleLink}>
+        <NavLink to="/testes" className={styleLink}>
           <CheckSquare className="w-5 h-5" />
           Testes
         </NavLink>
@@ -61,9 +61,9 @@ function Sidebar() {
         {canManagePeople && (
           <>
             <hr className="border-gray-600 my-2" />
-            <NavLink to="/pessoas" className={styleLink}>
+            <NavLink to="/funcionarios" className={styleLink}>
               <Users className="w-5 h-5" />
-              Pessoas
+              Funcionários
             </NavLink>
           </>
         )}

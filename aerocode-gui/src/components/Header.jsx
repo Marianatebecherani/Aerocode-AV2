@@ -22,7 +22,7 @@ function Header() {
           <UserCircle className="w-6 h-6" />
           {/* 3. Usa o nome do usuário do context */}
           <span className="font-medium">
-            {user ? user.name : 'Carregando...'}
+            {user ? `${user.name} [${user.nivelPermissao || user.role?.toUpperCase()}]` : 'Carregando...'}
           </span>
         </div>
 
