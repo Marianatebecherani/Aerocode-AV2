@@ -38,7 +38,7 @@ function Sidebar() {
           Dashboard
         </NavLink>
 
-        <NavLink to="/linha-de-montagem" className={styleLink}>
+        <NavLink to="/etapas" className={styleLink}>
           <CalendarClock className="w-5 h-5" />
           Etapas
         </NavLink>

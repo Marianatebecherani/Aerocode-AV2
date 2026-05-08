@@ -205,4 +205,28 @@ export function SuccessModal({
   );
 }
 
+export function ErrorModal({
+  isOpen,
+  onClose,
+  title = 'Não foi possível concluir',
+  description = 'A solicitação não pode ser concluída.',
+  confirmLabel = 'Entendi',
+}) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      description={description}
+      icon={AlertTriangle}
+      variant="danger"
+      footer={(
+        <ModalButton variant="danger" onClick={onClose}>
+          {confirmLabel}
+        </ModalButton>
+      )}
+    />
+  );
+}
+
 export default Modal;

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, CheckCircle, Package, Users } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle, Package, Plus, Trash2, Users } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { ErrorModal } from '../components/Modal';
 
 const statusStyles = {
   PENDENTE: 'bg-gray-700 text-gray-200 border-gray-600',
@@ -22,11 +24,17 @@ const Badge = ({ value }) => (
 
 function StepDetail() {
   const { id: aeronaveCodigo, etapaId } = useParams();
+  const { user } = useAuth();
   const [etapa, setEtapa] = useState(null);
   const [pecas, setPecas] = useState([]);
   const [testes, setTestes] = useState([]);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [selectedFuncionarioId, setSelectedFuncionarioId] = useState('');
+  const [isUpdatingTeam, setIsUpdatingTeam] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [operationError, setOperationError] = useState('');
+  const canOperate = user && (user.role === 'admin' || user.role === 'engenheiro');
 
   useEffect(() => {
     let active = true;
@@ -35,16 +43,18 @@ function StepDetail() {
       setLoading(true);
       setError('');
       try {
-        const [etapaData, pecasResponse, testesResponse] = await Promise.all([
+        const [etapaData, pecasResponse, testesResponse, funcionariosResponse] = await Promise.all([
           api.buscarEtapa(etapaId),
           api.listarPecas({ aeronaveCodigo, limit: 100 }),
           api.listarTestes({ aeronaveCodigo, limit: 100 }),
+          api.listarFuncionarios({ limit: 100 }),
         ]);
 
         if (!active) return;
         setEtapa(etapaData);
         setPecas(pecasResponse.dados || []);
         setTestes(testesResponse.dados || []);
+        setFuncionarios(funcionariosResponse.dados || []);
       } catch (err) {
         if (active) setError(err.message);
       } finally {
@@ -71,6 +81,50 @@ function StepDetail() {
   const status = etapa.statusTracker?.atual?.status;
   const pecasProntas = pecas.filter((peca) => peca.statusTracker?.atual?.status === 'PRONTA').length;
   const testesReprovados = testes.filter((teste) => teste.resultadoTracker?.atual?.resultado === 'REPROVADO');
+  const funcionariosPorId = new Map(funcionarios.map((funcionario) => [funcionario.id, funcionario]));
+  const funcionariosDisponiveis = funcionarios.filter((funcionario) => !etapa.funcionariosIds.includes(funcionario.id));
+
+  const refreshEtapa = async () => {
+    const etapaData = await api.buscarEtapa(etapaId);
+    setEtapa(etapaData);
+  };
+
+  const associateFuncionario = async (e) => {
+    e.preventDefault();
+    if (!selectedFuncionarioId || !canOperate) return;
+
+    setIsUpdatingTeam(true);
+    setOperationError('');
+
+    try {
+      await api.associarFuncionarioEtapa(etapaId, selectedFuncionarioId);
+      setSelectedFuncionarioId('');
+      await refreshEtapa();
+    } catch (err) {
+      setOperationError(err.message);
+    } finally {
+      setIsUpdatingTeam(false);
+    }
+  };
+
+  const removeFuncionario = async (funcionarioId) => {
+    if (!canOperate) {
+      setOperationError('Seu perfil possui acesso somente leitura.');
+      return;
+    }
+
+    setIsUpdatingTeam(true);
+    setOperationError('');
+
+    try {
+      await api.desassociarFuncionarioEtapa(etapaId, funcionarioId);
+      await refreshEtapa();
+    } catch (err) {
+      setOperationError(err.message);
+    } finally {
+      setIsUpdatingTeam(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -128,17 +182,64 @@ function StepDetail() {
             <Users className="w-5 h-5 text-blue-400" />
             <h2 className="text-xl font-bold text-white">Equipe</h2>
           </div>
+          {canOperate && (
+            <form onSubmit={associateFuncionario} className="mb-4 flex gap-2">
+              <select
+                value={selectedFuncionarioId}
+                onChange={(e) => setSelectedFuncionarioId(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-gray-600 bg-gray-700 p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isUpdatingTeam || funcionariosDisponiveis.length === 0}
+              >
+                <option value="">Selecionar funcionario</option>
+                {funcionariosDisponiveis.map((funcionario) => (
+                  <option key={funcionario.id} value={funcionario.id}>
+                    {funcionario.nome}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={isUpdatingTeam || !selectedFuncionarioId}
+                className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Associar funcionario"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+            </form>
+          )}
           <div className="space-y-3">
             {etapa.funcionariosIds.length === 0 && <p className="text-gray-400">Nenhum funcionario associado.</p>}
-            {etapa.funcionariosIds.map((funcionarioId) => (
+            {etapa.funcionariosIds.map((funcionarioId) => {
+              const funcionario = funcionariosPorId.get(funcionarioId);
+              return (
               <div key={funcionarioId} className="flex items-center justify-between rounded-lg bg-gray-700 px-4 py-3">
-                <span className="text-gray-200">Funcionario #{funcionarioId}</span>
-                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span className="text-gray-200">{funcionario?.nome || `Funcionario #${funcionarioId}`}</span>
+                {canOperate ? (
+                  <button
+                    type="button"
+                    onClick={() => removeFuncionario(funcionarioId)}
+                    disabled={isUpdatingTeam}
+                    className="text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    title="Remover funcionario"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                )}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       </section>
+
+      <ErrorModal
+        isOpen={Boolean(operationError)}
+        onClose={() => setOperationError('')}
+        title="Nao foi possivel concluir"
+        description={operationError}
+      />
     </div>
   );
 }

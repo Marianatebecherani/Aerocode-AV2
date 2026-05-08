@@ -34,12 +34,12 @@ function App() {
         <Route path="projeto/:id/etapa/:etapaId" element={<StepDetail />} />
         <Route path="projeto/:id/componente/:componenteId" element={<ComponentDetail />} />
 
-        <Route path="linha-de-montagem" element={<LinhaDeMontagem />} />
+        <Route path="etapas" element={<LinhaDeMontagem />} />
         <Route path="pecas" element={<Inventario />} />
         <Route path="testes" element={<ControleDeQualidade />} />
         <Route path="relatorios" element={<Relatorios />} />
         <Route path="funcionarios" element={<Configuracoes />} />
-        <Route path="configuracoes" element={<Configuracoes />} />
+        <Route path="configuracoes" element={<Configuracoes />} /> // 42: resposta do universo
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

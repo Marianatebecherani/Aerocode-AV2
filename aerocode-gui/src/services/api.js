@@ -57,10 +57,21 @@ export const api = {
 
   listarEtapas: (params) => request(withQuery('/etapas', params)),
   buscarEtapa: (id) => request(`/etapas/${id}`),
+  criarEtapa: (payload) => request('/etapas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  atualizarEtapa: (id, payload) => request(`/etapas/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  }),
+  deletarEtapa: (id) => request(`/etapas/${id}`, { method: 'DELETE' }),
   prosseguirEtapa: (id) => request(`/etapas/${id}/status/prosseguir`, { method: 'PATCH' }),
   retrocederEtapa: (id) => request(`/etapas/${id}/status/retroceder`, { method: 'PATCH' }),
   iniciarEtapa: (id) => request(`/etapas/${id}/status/iniciar`, { method: 'PATCH' }),
   finalizarEtapa: (id) => request(`/etapas/${id}/status/finalizar`, { method: 'PATCH' }),
+  associarFuncionarioEtapa: (id, funcionarioId) => request(`/etapas/${id}/funcionarios/${funcionarioId}`, { method: 'POST' }),
+  desassociarFuncionarioEtapa: (id, funcionarioId) => request(`/etapas/${id}/funcionarios/${funcionarioId}`, { method: 'DELETE' }),
 
   listarTestes: (params) => request(withQuery('/testes', params)),
   criarTeste: (payload) => request('/testes', {
