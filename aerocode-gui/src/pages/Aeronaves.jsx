@@ -421,7 +421,7 @@ function Aeronaves() {
               {aeronaves.map((aeronave) => (
                 <tr key={aeronave.codigo} className="hover:bg-gray-700/50">
                   <td className="py-4 px-6 text-sm font-medium text-white">
-                    <Link to={`/aeronave/${aeronave.codigo}`} className="text-blue-400 hover:text-blue-300">
+                    <Link to={`/dashboard/${aeronave.codigo}`} className="text-blue-400 hover:text-blue-300">
                       {aeronave.codigo}
                     </Link>
                   </td>

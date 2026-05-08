@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, CheckCircle, Clock, Package, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Clock, Package, XCircle } from 'lucide-react';
 
 const getStatusVisuals = (statusType) => {
   switch (statusType) {
@@ -16,12 +16,16 @@ const getStatusVisuals = (statusType) => {
   }
 };
 
-function ProjectList({ projects }) {
+function ProjectList({ projects, paginacao, onPageChange }) {
+  const total = paginacao?.total ?? projects.length;
+  const currentPage = paginacao?.page ?? 1;
+  const totalPages = paginacao?.totalPages ?? 0;
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-white">Aeronaves</h2>
-        <span className="text-sm text-gray-400">{projects.length} cadastradas</span>
+        <span className="text-sm text-gray-400">{total} cadastradas</span>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -31,7 +35,7 @@ function ProjectList({ projects }) {
           return (
             <Link
               key={project.id}
-              to={`/aeronave/${project.id}`}
+              to={`/dashboard/${project.id}`}
               className="flex items-center p-4 bg-gray-700 rounded-lg shadow-md hover:bg-gray-600 transition-colors"
             >
               <div className="p-3 bg-gray-800 rounded-full mr-4">
@@ -65,6 +69,34 @@ function ProjectList({ projects }) {
           );
         })}
       </div>
+
+      {paginacao && (
+        <div className="mt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t border-gray-700 pt-4">
+          <p className="text-sm text-gray-400">
+            Página {totalPages ? currentPage : 0} de {totalPages}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={!onPageChange || currentPage <= 1}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Anterior
+            </button>
+            <button
+              type="button"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={!onPageChange || currentPage >= totalPages}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Próxima
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

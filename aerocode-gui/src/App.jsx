@@ -14,34 +14,41 @@ import ControleDeQualidade from './pages/ControleDeQualidade';
 import LinhaDeMontagem from './pages/LinhaDeMontagem';
 import Relatorios from './pages/Relatorios';
 import Configuracoes from './pages/Configuracoes';
+import { useAuth } from './context/AuthContext';
+
+function RootRedirect() {
+  const { user } = useAuth();
+
+  return <Navigate to={user ? '/dashboard' : '/login'} replace />;
+}
 
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 
       <Route
-        path="/"
         element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard />} />
-        <Route path="aeronave/:id" element={<ProjectDetail />} />
-        <Route path="aeronaves" element={<Aeronaves />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/:id" element={<ProjectDetail />} />
+        <Route path="/aeronaves" element={<Aeronaves />} />
 
-        <Route path="projeto/:id" element={<ProjectDetail />} />
-        <Route path="projeto/:id/etapa/:etapaId" element={<StepDetail />} />
-        <Route path="projeto/:id/componente/:componenteId" element={<ComponentDetail />} />
+        <Route path="/projeto/:id" element={<ProjectDetail />} />  // 42: resposta do universo 
+        <Route path="/projeto/:id/etapa/:etapaId" element={<StepDetail />} />
+        <Route path="/projeto/:id/componente/:componenteId" element={<ComponentDetail />} />
 
-        <Route path="etapas" element={<LinhaDeMontagem />} />
-        <Route path="pecas" element={<Inventario />} />
-        <Route path="testes" element={<ControleDeQualidade />} />
-        <Route path="relatorios" element={<Relatorios />} />  // 42: resposta do universo
-        <Route path="funcionarios" element={<Configuracoes />} />
-        <Route path="configuracoes" element={<Configuracoes />} />
+        <Route path="/etapas" element={<LinhaDeMontagem />} />
+        <Route path="/pecas" element={<Inventario />} />
+        <Route path="/testes" element={<ControleDeQualidade />} />
+        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/funcionarios" element={<Configuracoes />} />
+        <Route path="/configuracoes" element={<Configuracoes />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

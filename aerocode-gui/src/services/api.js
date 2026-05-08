@@ -113,6 +113,8 @@ export const api = {
     body: JSON.stringify(payload),
   }),
   deletarRelatorio: (id) => request(`/relatorios/${id}`, { method: 'DELETE' }),
+
+  buscarDashboard: (params) => request(withQuery('/dashboard', params)),
 };
 
 export function nivelToRole(nivelPermissao) {

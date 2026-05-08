@@ -64,7 +64,7 @@ function ProjectDetail() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Link to="/" className="text-sm text-blue-400 hover:underline">Dashboard</Link>
+        <Link to="/dashboard" className="text-sm text-blue-400 hover:underline">Dashboard</Link>
         <h1 className="text-3xl font-bold text-white mt-1">{aeronave.modelo}</h1>
         <p className="text-gray-400">{aeronave.codigo} - {aeronave.tipo}</p>
       </div>

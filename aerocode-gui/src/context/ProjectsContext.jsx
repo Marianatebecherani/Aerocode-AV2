@@ -66,15 +66,26 @@ function projectFromAeronave(aeronave) {
 
 export function ProjectsProvider({ children }) {
   const [aeronaves, setAeronaves] = useState([]);
+  const [etapasResumo, setEtapasResumo] = useState({ total: 0, concluidas: 0 });
+  const [dashboardResumo, setDashboardResumo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadAeronaves = useCallback(async () => {
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await api.listarAeronaves({ limit: 100 });
-      setAeronaves(response.dados || []);
+      const [dashboardResponse, aeronavesResponse] = await Promise.all([
+        api.buscarDashboard(),
+        api.listarAeronaves({ limit: 100 }),
+      ]);
+
+      setDashboardResumo(dashboardResponse);
+      setAeronaves(aeronavesResponse.dados || []);
+      setEtapasResumo({
+        total: dashboardResponse?.etapas?.total || 0,
+        concluidas: dashboardResponse?.etapas?.concluidas || 0,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,17 +94,19 @@ export function ProjectsProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    loadAeronaves();
-  }, [loadAeronaves]);
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const projects = useMemo(() => aeronaves.map(projectFromAeronave), [aeronaves]);
 
   const value = {
     aeronaves,
+    dashboardResumo,
+    etapasResumo,
     projects,
     loading,
     error,
-    refresh: loadAeronaves,
+    refresh: loadDashboardData,
     fetchAeronaveDetalhes: api.buscarDetalhesAeronave,
   };
 

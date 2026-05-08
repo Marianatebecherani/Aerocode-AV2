@@ -27,13 +27,13 @@ function Sidebar() {
   return (
     <aside className="w-64 bg-gray-800 p-4 flex flex-col border-r border-gray-700">
       <div className="mb-8 p-2 text-center">
-        <NavLink to="/">
+        <NavLink to="/dashboard">
           <img src="/logos/logo_aerocode_512.png" alt="Aerocode Logo" className="h-32 w-auto mx-auto" />
         </NavLink>
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">
-        <NavLink to="/" end className={styleLink}>
+        <NavLink to="/dashboard" className={styleLink}>
           <LayoutDashboard className="w-5 h-5" />
           Dashboard
         </NavLink>
