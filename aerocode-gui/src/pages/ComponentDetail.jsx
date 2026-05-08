@@ -117,7 +117,7 @@ const ActivityCard = ({ log }) => (
 
 function ComponentDetail() {
   // Le os IDs da URL
-  const { id: projectId, componenteId: componentId } = useParams();
+  useParams();
 
   // Carrega os dados (usando o mock)
   const data = mockComponentData;

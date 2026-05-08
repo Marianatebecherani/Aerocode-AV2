@@ -41,7 +41,7 @@ const mockStepData = {
 // --- Fim do Mock Data ---
 
 function StepDetail() {
-  const { id: projectId, etapaId: stepId } = useParams();
+  const { id: projectId } = useParams();
 
   // Carregamos os dados (usando o mock)
   const step = mockStepData;

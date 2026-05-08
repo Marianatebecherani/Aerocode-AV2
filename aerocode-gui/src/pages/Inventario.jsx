@@ -1,322 +1,264 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import {
-  Package,
-  Plus,
-  Edit2,
-  Trash2,
-  AlertTriangle,
-  X,
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Package, Search, X } from 'lucide-react';
+import { api } from '../services/api';
 
-// --- Dados Fictícios (Mock Data) ---
-const mockInventoryData = [
-  {
-    id: 'L-105',
-    name: 'Longarina Principal (Asa)',
-    quantity: 12,
-    status: 'Em Estoque',
-    statusType: 'success',
-  },
-  {
-    id: 'F-210',
-    name: 'Seção de Fuselagem 1A',
-    quantity: 4,
-    status: 'Em Estoque',
-    statusType: 'success',
-  },
-  {
-    id: 'W-030',
-    name: 'Janela de Cockpit (Vidro Triplo)',
-    quantity: 1,
-    status: 'Estoque Baixo',
-    statusType: 'warning',
-  },
-  {
-    id: 'E-404',
-    name: 'Motor GE9X (Unidade)',
-    quantity: 0,
-    status: 'Em Falta',
-    statusType: 'error',
-  },
-  {
-    id: 'R-001',
-    name: 'Rebite Estrutural (Caixa)',
-    quantity: 500,
-    status: 'Em Estoque',
-    statusType: 'success',
-  },
-];
-// --- Fim do Mock Data ---
-
-// Mapeamento de status para cores (para a tabela)
 const statusStyles = {
-  success: 'text-green-400',
-  warning: 'text-yellow-400',
-  error: 'text-red-400',
+  EM_PRODUCAO: 'text-yellow-400',
+  EM_TRANSPORTE: 'text-blue-400',
+  PRONTA: 'text-green-400',
 };
 
-// --- O Componente da Página ---
+const initialFilters = {
+  aeronaveCodigo: '',
+  tipo: '',
+  status: '',
+  termo: '',
+  page: 1,
+  limit: 10,
+};
 
 function Inventario() {
-  const { user } = useAuth();
-  const [items, setItems] = useState(mockInventoryData);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null); // Para Adicionar (null) ou Editar (item)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const [pecas, setPecas] = useState([]);
+  const [filters, setFilters] = useState(initialFilters);
+  const [draftFilters, setDraftFilters] = useState(initialFilters);
+  const [paginacao, setPaginacao] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Verificação de permissão: Apenas Admin e Engenheiro podem editar.
-  const canEdit = user && (user.role === 'admin' || user.role === 'engenheiro');
-
-  // --- Funções do Modal de Adicionar/Editar ---
-
-  const openModal = (item = null) => {
-    setCurrentItem(
-      item
-        ? item
-        : { id: '', name: '', quantity: 0, status: 'Em Estoque', statusType: 'success' }
-    );
-    setIsModalOpen(true);
+  const loadPecas = async (params = filters) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await api.listarPecas(params);
+      setPecas(response.dados || []);
+      setPaginacao(response.paginacao || {
+        total: 0,
+        page: params.page,
+        limit: params.limit,
+        totalPages: 0,
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setCurrentItem(null);
+  useEffect(() => {
+    loadPecas(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
+  const handleFilterChange = (field, value) => {
+    setDraftFilters((current) => ({
+      ...current,
+      [field]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const updatedItem = {
-      id: formData.get('id'),
-      name: formData.get('name'),
-      quantity: parseInt(formData.get('quantity'), 10),
-      status: formData.get('status'),
-      statusType: formData.get('status') === 'Em Falta' ? 'error' : (parseInt(formData.get('quantity'), 10) < 5 ? 'warning' : 'success'),
-    };
-
-    if (items.some((item) => item.id === updatedItem.id && currentItem.id !== updatedItem.id)) {
-      alert('Erro: O ID da peça já existe.');
-      return;
-    }
-
-    if (currentItem && items.some((item) => item.id === currentItem.id)) {
-      // Editar (Atualizar)
-      setItems(
-        items.map((item) =>
-          item.id === currentItem.id ? updatedItem : item
-        )
-      );
-    } else {
-      // Adicionar (Criar)
-      setItems([updatedItem, ...items]);
-    }
-    closeModal();
+    setFilters({
+      ...draftFilters,
+      page: 1,
+      limit: Number(draftFilters.limit) || 10,
+    });
   };
 
-  // --- Funções do Modal de Excluir ---
-
-  const openDeleteModal = (item) => {
-    setItemToDelete(item);
-    setIsDeleteModalOpen(true);
+  const clearFilters = () => {
+    setDraftFilters(initialFilters);
+    setFilters(initialFilters);
   };
 
-  const closeDeleteModal = () => {
-    setItemToDelete(null);
-    setIsDeleteModalOpen(false);
+  const changePage = (nextPage) => {
+    const totalPages = paginacao.totalPages || 1;
+    const normalizedPage = Math.min(Math.max(nextPage, 1), totalPages);
+    setDraftFilters((current) => ({ ...current, page: normalizedPage }));
+    setFilters((current) => ({ ...current, page: normalizedPage }));
   };
 
-  const handleDeleteItem = () => {
-    if (itemToDelete) {
-      setItems(items.filter((item) => item.id !== itemToDelete.id));
-      closeDeleteModal();
+  const changeLimit = (limit) => {
+    const normalizedLimit = Number(limit) || 10;
+    setDraftFilters((current) => ({ ...current, limit: normalizedLimit, page: 1 }));
+    setFilters((current) => ({ ...current, limit: normalizedLimit, page: 1 }));
+  };
+
+  const moveStatus = async (id, direction) => {
+    try {
+      if (direction === 'next') {
+        await api.prosseguirPeca(id);
+      } else {
+        await api.retrocederPeca(id);
+      }
+      await loadPecas(filters);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
     <div className="flex flex-col gap-8">
-      {/* SEÇÃO 1: Cabeçalho da Página */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center gap-3">
+        <Package className="w-8 h-8 text-blue-400" />
         <div>
-          <h1 className="text-3xl font-bold text-white">Inventário</h1>
-          <p className="text-gray-400">Gestão de peças e componentes.</p>
+          <h1 className="text-3xl font-bold text-white">Pecas</h1>
+          <p className="text-gray-400">Rastreamento de componentes por aeronave.</p>
         </div>
-        {/* Mostra o botão apenas se o utilizador tiver permissão */}
-        {canEdit && (
-          <button
-            onClick={() => openModal(null)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Adicionar Nova Peça
-          </button>
-        )}
       </div>
 
-      {/* SEÇÃO 2: Tabela de Inventário (Leitura) */}
-      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-700">
-            <tr>
-              <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">ID da Peça</th>
-              <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">Nome do Componente</th>
-              <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">Quantidade</th>
-              <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-              {canEdit && <th className="py-3 px-6 text-right text-sm font-semibold text-gray-300 uppercase tracking-wider">Ações</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-700">
-            {items.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-700/50">
-                <td className="py-4 px-6 text-sm font-medium text-white">{item.id}</td>
-                <td className="py-4 px-6 text-sm text-gray-300">{item.name}</td>
-                <td className="py-4 px-6 text-sm font-bold text-white">{item.quantity}</td>
-                <td className={`py-4 px-6 text-sm font-medium ${statusStyles[item.statusType] || 'text-gray-400'}`}>
-                  {item.status}
-                </td>
-                {/* Mostra as ações apenas se o utilizador tiver permissão */}
-                {canEdit && (
-                  <td className="py-4 px-6 text-right space-x-3">
-                    <button
-                      onClick={() => openModal(item)}
-                      className="text-blue-400 hover:text-blue-300 transition-colors"
-                      title="Editar"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(item)}
-                      className="text-red-500 hover:text-red-400 transition-colors"
-                      title="Excluir"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+          <div>
+            <label htmlFor="aeronaveCodigo" className="block text-sm font-medium text-gray-300 mb-1">Aeronave</label>
+            <input
+              id="aeronaveCodigo"
+              value={draftFilters.aeronaveCodigo}
+              onChange={(e) => handleFilterChange('aeronaveCodigo', e.target.value)}
+              placeholder="AER-0001"
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-      {/* SEÇÃO 3: Modal de Adicionar/Editar (Criar/Atualizar) */}
-      {isModalOpen && currentItem && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-lg border border-gray-700">
-            <div className="flex justify-between items-center p-6 border-b border-gray-700">
-              <h2 className="text-xl font-bold text-white">
-                {items.some((item) => item.id === currentItem.id) ? 'Editar Peça' : 'Adicionar Nova Peça'}
-              </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-white">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label htmlFor="id" className="block text-sm font-medium text-gray-300 mb-1">
-                  ID da Peça (ex: L-106)
-                </label>
-                <input
-                  type="text"
-                  name="id"
-                  defaultValue={currentItem.id}
-                  className="w-full bg-gray-700 text-white p-2 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  required
-                  // Desativa a edição do ID se estiver editando um item existente
-                  disabled={items.some((item) => item.id === currentItem.id)}
-                />
-              </div>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                  Nome do Componente
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  defaultValue={currentItem.name}
-                  className="w-full bg-gray-700 text-white p-2 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-300 mb-1">
-                  Quantidade
-                </label>
-                <input
-                  type="number"
-                  name="quantity"
-                  defaultValue={currentItem.quantity}
-                  className="w-full bg-gray-700 text-white p-2 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  min="0"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-300 mb-1">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  defaultValue={currentItem.status}
-                  className="w-full bg-gray-700 text-white p-2 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option>Em Estoque</option>
-                  <option>Estoque Baixo</option>
-                  <option>Em Falta</option>
-                  <option>Em Pedido</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                >
-                  Salvar Alterações
-                </button>
-              </div>
-            </form>
+          <div>
+            <label htmlFor="tipo" className="block text-sm font-medium text-gray-300 mb-1">Tipo</label>
+            <select
+              id="tipo"
+              value={draftFilters.tipo}
+              onChange={(e) => handleFilterChange('tipo', e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos</option>
+              <option value="NACIONAL">Nacional</option>
+              <option value="IMPORTADA">Importada</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-300 mb-1">Status</label>
+            <select
+              id="status"
+              value={draftFilters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos</option>
+              <option value="EM_PRODUCAO">Em producao</option>
+              <option value="EM_TRANSPORTE">Em transporte</option>
+              <option value="PRONTA">Pronta</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="termo" className="block text-sm font-medium text-gray-300 mb-1">Termo</label>
+            <input
+              id="termo"
+              value={draftFilters.termo}
+              onChange={(e) => handleFilterChange('termo', e.target.value)}
+              placeholder="motor"
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="limit" className="block text-sm font-medium text-gray-300 mb-1">Itens por pagina</label>
+            <select
+              id="limit"
+              value={draftFilters.limit}
+              onChange={(e) => changeLimit(e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+
+          <div className="flex items-end gap-3">
+            <button type="submit" className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+              <Search className="w-5 h-5" />
+              Buscar
+            </button>
+            <button type="button" onClick={clearFilters} className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg" title="Limpar filtros">
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      )}
+      </form>
 
-      {/* SEÇÃO 4: Modal de Confirmação de Exclusão (Apagar) */}
-      {isDeleteModalOpen && itemToDelete && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-md border border-gray-700 p-6">
-            <div className="flex items-center gap-4">
-              <div className="bg-red-900/50 p-3 rounded-full">
-                <AlertTriangle className="w-8 h-8 text-red-400" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Excluir Peça</h2>
-                <p className="text-gray-300 mt-1">
-                  Tem a certeza que quer excluir a peça <strong>{itemToDelete.name} ({itemToDelete.id})</strong>?
-                  Esta ação não pode ser desfeita.
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-4 mt-6">
+      {error && <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">{error}</div>}
+      {loading ? (
+        <p className="text-gray-300">Carregando pecas...</p>
+      ) : (
+        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+          <table className="min-w-full">
+            <thead className="bg-gray-700">
+              <tr>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">ID</th>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">Nome</th>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">Tipo</th>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">Aeronave</th>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">Fornecedor</th>
+                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-300 uppercase">Status</th>
+                <th className="py-3 px-6 text-right text-sm font-semibold text-gray-300 uppercase">Fluxo</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {pecas.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-400">
+                    Nenhuma peca encontrada para os filtros selecionados.
+                  </td>
+                </tr>
+              )}
+              {pecas.map((peca) => (
+                <tr key={peca.id} className="hover:bg-gray-700/50">
+                  <td className="py-4 px-6 text-sm font-medium text-white">{peca.id}</td>
+                  <td className="py-4 px-6 text-sm text-gray-300">{peca.nome}</td>
+                  <td className="py-4 px-6 text-sm text-gray-300">{peca.tipo}</td>
+                  <td className="py-4 px-6 text-sm text-gray-300">{peca.aeronaveCodigo}</td>
+                  <td className="py-4 px-6 text-sm text-gray-300">{peca.fornecedor}</td>
+                  <td className={`py-4 px-6 text-sm font-medium ${statusStyles[peca.statusTracker?.atual?.status] || 'text-gray-400'}`}>
+                    {peca.statusTracker?.atual?.status || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <button onClick={() => moveStatus(peca.id, 'previous')} className="text-gray-300 hover:text-white mr-3" title="Retroceder status">
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => moveStatus(peca.id, 'next')} className="text-blue-400 hover:text-blue-300" title="Avancar status">
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-t border-gray-700">
+            <p className="text-sm text-gray-400">
+              {paginacao.total} peca(s) encontradas - pagina {paginacao.totalPages ? paginacao.page : 0} de {paginacao.totalPages}
+            </p>
+            <div className="flex items-center gap-3">
               <button
-                type="button"
-                onClick={closeDeleteModal}
-                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
+                onClick={() => changePage(paginacao.page - 1)}
+                disabled={paginacao.page <= 1}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Cancelar
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
               </button>
               <button
-                type="button"
-                onClick={handleDeleteItem}
-                className="py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                onClick={() => changePage(paginacao.page + 1)}
+                disabled={paginacao.page >= paginacao.totalPages}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Sim, Excluir
+                Proxima
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>

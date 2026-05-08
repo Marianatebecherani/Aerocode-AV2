@@ -1,118 +1,139 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Check, Clock, AlertTriangle, ListTodo, Package } from 'lucide-react';
-
-// Reutiliza o KpiCard que já fiz
+import React, { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { CalendarClock, CheckCircle, Gauge, Package, ShieldCheck } from 'lucide-react';
 import KpiCard from '../components/KpiCard';
-// Importa o novo componente para as etapas
-import StepCard from '../components/StepCard';
+import { api } from '../services/api';
 
-// --- Dados Fictícios (Mock Data) ---
-const mockProjectData = {
-  id: 4,
-  title: 'Pedido 04-EMB (Embraer E2)',
-  breadcrumb: 'Projetos',
-  status: 'ALERTA - PARADO',
-  kpis: [
-    {
-      id: 1,
-      title: 'Progresso Total',
-      value: '65%',
-      icon: Check, 
-      color: 'red',
-    },
-    {
-      id: 2,
-      title: 'Prazo Estimado',
-      value: '15/Dez/2025',
-      icon: Clock,
-      color: 'gray',
-    },
-  ],
-  steps: [
-    {
-      id: 1,
-      title: '1. Estrutura e Fundações',
-      status: 'Completo',
-      icon: Package,
-      tasks: [
-        'Recebimento de materiais',
-        'Inspeção de longarinas',
-        'Montagem do esqueleto base',
-      ],
-    },
-    {
-      id: 2,
-      title: '2. Montagem das Asas',
-      status: 'ALERTA - PARADO',
-      icon: AlertTriangle,
-      tasks: [
-        'Montagem Asa Esquerda (PARADO)',
-        'Montagem Asa Direita',
-        'Instalação de Flaps',
-        'Inspeção de Qualidade (Pendente)',
-      ],
-    },
-    {
-      id: 3,
-      title: '3. Montagem da Fuselagem',
-      status: 'Em Espera',
-      icon: ListTodo,
-      tasks: ['Pendente da Etapa 2'],
-    },
-    {
-      id: 4,
-      title: '4. Instalação de Aviônica',
-      status: 'Em Espera',
-      icon: ListTodo,
-      tasks: ['Pendente da Etapa 3'],
-    },
-  ],
+const badgeStyles = {
+  PENDENTE: 'bg-gray-700 text-gray-200',
+  EM_ANDAMENTO: 'bg-yellow-900 text-yellow-300',
+  CONCLUIDA: 'bg-green-900 text-green-300',
+  EM_PRODUCAO: 'bg-yellow-900 text-yellow-300',
+  EM_TRANSPORTE: 'bg-blue-900 text-blue-300',
+  PRONTA: 'bg-green-900 text-green-300',
+  APROVADO: 'bg-green-900 text-green-300',
+  REPROVADO: 'bg-red-900 text-red-300',
 };
-// --- Fim do Mock Data ---
+
+const Badge = ({ value }) => (
+  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badgeStyles[value] || 'bg-gray-700 text-gray-200'}`}>
+    {value || 'N/A'}
+  </span>
+);
 
 function ProjectDetail() {
-  const { id: projectId } = useParams();
-  const project = mockProjectData;
+  const { id } = useParams();
+  const [aeronave, setAeronave] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await api.buscarDetalhesAeronave(id);
+        if (active) setAeronave(data);
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading) return <p className="text-gray-300">Carregando aeronave...</p>;
+
+  if (error || !aeronave) {
+    return (
+      <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">
+        {error || 'Aeronave nao encontrada.'}
+      </div>
+    );
+  }
+
+  const etapasConcluidas = aeronave.etapas.filter((etapa) => etapa.status === 'CONCLUIDA').length;
+  const testesAprovados = aeronave.testes.filter((teste) => teste.resultado === 'APROVADO').length;
   return (
     <div className="flex flex-col gap-8">
-      {/* SEÇÃO 1: Cabeçalho da Página */}
       <div>
-        <span className="text-sm text-gray-400">{project.breadcrumb}</span>
-        <h1 className="text-3xl font-bold text-white mt-1">{project.title}</h1>
+        <Link to="/" className="text-sm text-blue-400 hover:underline">Dashboard</Link>
+        <h1 className="text-3xl font-bold text-white mt-1">{aeronave.modelo}</h1>
+        <p className="text-gray-400">{aeronave.codigo} - {aeronave.tipo}</p>
       </div>
 
-      {/* SEÇÃO 2: KPIs (Reutilizando KpiCard) */}
-      <section>
-        <h2 className="text-xl font-semibold text-white mb-4">Visão Geral</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {project.kpis.map((kpi) => (
-            <KpiCard
-              key={kpi.id}
-              title={kpi.title}
-              value={kpi.value}
-              Icon={kpi.icon}
-              color={kpi.color}
-              className="md:col-span-1"
-            />
-          ))}
-        </div>
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <KpiCard title="Capacidade" value={String(aeronave.capacidade)} details="passageiros" Icon={Package} color="gray" />
+        <KpiCard title="Alcance" value={`${aeronave.alcance} km`} details="operacional" Icon={Gauge} color="gray" />
+        <KpiCard title="Etapas" value={`${etapasConcluidas}/${aeronave.etapas.length}`} details="concluidas" Icon={CalendarClock} color="gray" />
+        <KpiCard title="Testes" value={`${testesAprovados}/${aeronave.testes.length}`} details="aprovados" Icon={ShieldCheck} color={testesAprovados === aeronave.testes.length ? 'gray' : 'red'} />
       </section>
 
-      {/* SEÇÃO 3: Macro-Etapas (Usando StepCard) */}
-      <section>
-        <h2 className="text-xl font-semibold text-white mb-4">Macro-Etapas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {project.steps.map((step) => (
-            <Link
-              key={step.id}
-              to={`/projeto/${projectId}/etapa/${step.id}`}
-              className="transform transition-transform hover:scale-105"
-            >
-              <StepCard step={step} />
-            </Link>
-          ))}
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Etapas</h2>
+          <div className="space-y-4">
+            {aeronave.etapas.map((etapa) => (
+              <div key={`${etapa.nome}-${etapa.prioridade}`} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-white">{etapa.nome}</p>
+                    <p className="text-sm text-gray-400">Prazo: {etapa.prazoConclusao}</p>
+                  </div>
+                  <Badge value={etapa.status} />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {etapa.funcionarios.map((funcionario) => (
+                    <span key={`${etapa.nome}-${funcionario.nome}`} className="text-xs bg-gray-800 text-gray-300 rounded-full px-2 py-1">
+                      {funcionario.nome} ({funcionario.funcao})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Pecas</h2>
+          <div className="space-y-4">
+            {aeronave.pecas.map((peca) => (
+              <div key={`${peca.nome}-${peca.fornecedor}`} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-white">{peca.nome}</p>
+                    <p className="text-sm text-gray-400">{peca.tipo} - {peca.fornecedor}</p>
+                  </div>
+                  <Badge value={peca.status} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Testes</h2>
+          <div className="space-y-4">
+            {aeronave.testes.map((teste) => (
+              <div key={teste.tipo} className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="font-semibold text-white">{teste.tipo}</p>
+                    <p className="text-sm text-gray-400">{teste.data ? new Date(teste.data).toLocaleString('pt-BR') : 'Sem data'}</p>
+                  </div>
+                </div>
+                <Badge value={teste.resultado} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

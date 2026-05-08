@@ -1,58 +1,71 @@
 import React from 'react';
 import KpiCard from '../components/KpiCard';
 import ProjectList from '../components/ProjectList';
-import { Package, ShieldCheck, Locate, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CheckSquare, Layers, Package } from 'lucide-react';
 import { useProjects } from '../context/ProjectsContext';
 
 function Dashboard() {
-  // 1. Busca os projetos do contexto
-  const { projects } = useProjects();
+  const { projects, aeronaves, loading, error } = useProjects();
 
-  // 2. Calcula o número de projetos que não estão "Completos"
-  const activeProjectsCount = projects.filter(
-    (project) => project.status !== 'Completo'
-  ).length;
+  const totalEtapas = aeronaves.reduce((sum, aeronave) => sum + (aeronave.etapas?.length || 0), 0);
+  const etapasConcluidas = aeronaves.reduce((sum, aeronave) => {
+    return sum + (aeronave.etapas || []).filter((etapa) => etapa.statusTracker?.atual?.status === 'CONCLUIDA').length;
+  }, 0);
+  const totalPecas = aeronaves.reduce((sum, aeronave) => sum + (aeronave.pecas?.length || 0), 0);
+  const testesReprovados = aeronaves.reduce((sum, aeronave) => {
+    return sum + (aeronave.testes || []).filter((teste) => teste.resultadoTracker?.atual?.resultado === 'REPROVADO').length;
+  }, 0);
 
-  // 3. Define os dados dos cards aqui dentro para usar o valor dinâmico
   const kpiData = [
     {
-      title: "Projetos Ativos",
-      value: String(activeProjectsCount), // Usa o valor calculado
-      details: "(Em Execução)",
+      title: 'Aeronaves',
+      value: String(aeronaves.length),
+      details: 'em producao',
       icon: Package,
-      colorClass: "bg-gradient-to-r from-blue-500 to-blue-400"
+      colorClass: 'bg-gradient-to-r from-blue-500 to-blue-400',
     },
     {
-      title: "Metas Qualitativas CQ",
-      value: "1",
-      details: "(Alcançada)",
-      icon: ShieldCheck,
-    colorClass: "bg-gradient-to-r from-green-500 to-green-400"
+      title: 'Etapas',
+      value: `${etapasConcluidas}/${totalEtapas}`,
+      details: 'concluidas',
+      icon: Layers,
+      colorClass: 'bg-gradient-to-r from-green-500 to-green-400',
     },
     {
-      title: "Rastreio de Componentes",
-      value: "Rastreio",
-      details: "ATIVO",
-      icon: Locate,
-    colorClass: "bg-gradient-to-r from-yellow-500 to-yellow-400" // Mantido amarelo
+      title: 'Pecas',
+      value: String(totalPecas),
+      details: 'rastreaveis',
+      icon: CheckSquare,
+      colorClass: 'bg-gradient-to-r from-yellow-500 to-yellow-400',
     },
     {
-      title: "Alertas do Sistema",
-      value: "Sem Alertas",
-      details: "SISTEMA OK",
+      title: 'Alertas de Teste',
+      value: testesReprovados ? String(testesReprovados) : 'Sem alertas',
+      details: testesReprovados ? 'reprovados' : 'sistema ok',
       icon: AlertTriangle,
-    colorClass: "bg-gradient-to-r from-indigo-500 to-purple-500"
-    }
+      colorClass: testesReprovados
+        ? 'bg-gradient-to-r from-red-500 to-red-400'
+        : 'bg-gradient-to-r from-indigo-500 to-purple-500',
+    },
   ];
+
+  if (loading) {
+    return <p className="text-gray-300">Carregando dados do backend...</p>;
+  }
 
   return (
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400">Principal</p>
+        <p className="text-gray-400">Visao geral das aeronaves e seus componentes.</p>
       </div>
 
-      {/* Grid de Cards de KPI */}
+      {error && (
+        <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4">
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiData.map((kpi) => (
           <KpiCard
@@ -66,10 +79,7 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* Seção da Lista de Projetos */}
-      <div>
-        <ProjectList projects={projects} />
-      </div>
+      <ProjectList projects={projects} />
     </div>
   );
 }

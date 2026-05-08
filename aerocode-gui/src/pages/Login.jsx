@@ -1,35 +1,35 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/Logo_Aerocode.jpg';
 
 function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // 1. Estados para controlar os inputs e a mensagem de erro
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Pega a rota de origem para redirecionar o usuário após o login
   const from = location.state?.from?.pathname || '/';
 
-  // 2. Função para lidar com o submit do formulário
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Impede o recarregamento da página
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
-    // Tenta fazer o login com os dados do formulário
-    const loginSuccess = login(username, password);
-
-    if (loginSuccess) {
-      // Se o login for bem-sucedido, navega para a página de origem ou dashboard
-      navigate(from, { replace: true });
-    } else {
-      // Se falhar, exibe uma mensagem de erro
-      setError('Usuário ou senha inválidos.');
+    try {
+      const loginSuccess = await login(username, password);
+      if (loginSuccess) {
+        navigate(from, { replace: true });
+      } else {
+        setError('Usuario ou senha invalidos.');
+      }
+    } catch (err) {
+      setError(err.message || 'Nao foi possivel conectar ao backend.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -42,10 +42,9 @@ function Login() {
           Acessar Sistema Aerocode
         </h1>
 
-        {/* 3. Formulário de Login */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">Usuário</label>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">Usuario</label>
             <input
               type="text"
               id="username"
@@ -67,14 +66,14 @@ function Login() {
             />
           </div>
 
-          {/* Exibe a mensagem de erro, se houver */}
           {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
           <button
             type="submit"
-            className="w-full p-4 bg-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors mt-2"
+            disabled={isSubmitting}
+            className="w-full p-4 bg-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors mt-2 disabled:opacity-60"
           >
-            Entrar
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
       </div>
