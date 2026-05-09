@@ -1,3 +1,5 @@
+import { mockApi } from './mockApi';
+
 const API_BASE = '/api/v1';
 
 async function request(path, options = {}) {
@@ -31,7 +33,7 @@ const withQuery = (path, params = {}) => {
   return suffix ? `${path}?${suffix}` : path;
 };
 
-export const api = {
+const backendApi = {
   login: (payload) => request('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -116,6 +118,10 @@ export const api = {
 
   buscarDashboard: (params) => request(withQuery('/dashboard', params)),
 };
+
+const useMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false';
+
+export const api = useMockApi ? mockApi : backendApi;
 
 export function nivelToRole(nivelPermissao) {
   const map = {
