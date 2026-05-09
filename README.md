@@ -1,114 +1,172 @@
 # Aerocode-AV2
-Projeto frontend do Aerocode da matéria de Programacao Orientada a Objeto.
 
-# ✈️ Aerocode-GUI (Protótipo SPA)
- 
-![Status do Projeto](https://img.shields.io/badge/status-protótipo-blue)
+Protótipo SPA do sistema Aerocode, desenvolvido para a disciplina de Programação Orientada a Objetos.
+
+![Status do Projeto](https://img.shields.io/badge/status-prot%C3%B3tipo-blue)
 ![Framework](https://img.shields.io/badge/framework-React.js-blue?logo=react)
 ![Build Tool](https://img.shields.io/badge/build%20tool-Vite.js-purple?logo=vite)
- 
-Este é um protótipo de uma Aplicação de Página Única (SPA) com React e Vite para a matéria de Programação Orientada a Objetos. O projeto representa a evolução da versão CLI (`Aerocode-AV1`) para uma GUI (Interface Gráfica de Utilizador) moderna e interativa.
- 
-## ✨ Visão Geral
- 
- O objetivo deste protótipo é demonstrar a viabilidade e a experiência de utilizador de uma interface web para gerir o complexo processo de produção aeronáutica. A aplicação foca-se na facilidade de diagnóstico ("drill-down"), na gestão de recursos (Inventário, Controle de Qualidade) e na clara separação de responsabilidades através de perfis de utilizador.
- 
-> **💡 Nota:** O protótipo é 100% front-end e não requer uma base de dados. Todos os dados são fictícios (*mock data*) e o estado de autenticação e das operações CRUD é mantido em memória (`React State`), sendo perdido ao atualizar a página (F5).
 
----
- 
-## 🛠️ Tecnologias Utilizadas
- 
-- **React.js**: Biblioteca principal para a construção da interface de utilizador.
-- **Vite.js**: Ambiente de desenvolvimento front-end moderno e ultra-rápido.
-- **React Router**: Para a navegação e gestão de rotas da SPA.
-- **Tailwind CSS**: Framework utility-first para a estilização completa da aplicação.
-- **React Context**: Para a gestão do estado global de autenticação (login simulado).
-- **Lucide React**: Biblioteca de ícones leve e limpa.
-  
----
+## Sobre o Projeto
 
-## ✨ Funcionalidades Principais
+O Aerocode é uma aplicação web para gestão de produção, rastreabilidade e controle operacional de aeronaves. A versão AV2 evolui a interface CLI da AV1 para uma SPA moderna, centralizada e orientada a fluxos operacionais.
 
-O protótipo atual simula as seguintes funcionalidades:
+O protótipo foi validado no relatório de design e wireframing de 2026, com wireframes low quality e user flows para os principais módulos do sistema.
 
-- **Controle de Acesso por Nível:**
-  - **Administrador:** Vê e pode fazer tudo, incluindo a página de "Relatórios".
-  - **Engenheiro:** Vê tudo (exceto Relatórios) e pode realizar operações CRUD (Inventário, QC).
-  - **Operador:** Acesso de "apenas leitura". Não pode adicionar, editar ou apagar itens.
-- **Fluxo de Diagnóstico (Drill-Down):**
-  - O fluxo principal de 4 cliques:
-    1.  Dashboard (Visão geral)
-    2.  Detalhes do Projeto (Macro-etapas)
-    3.  Detalhes da Etapa (Subcomponentes)
-    4.  Detalhes do Componente (Relatório de falha de CQ)
-- **Módulos CRUD (Create, Read, Update, Delete):**
-  - **Inventário:** Engenheiros e Admins podem adicionar, editar e apagar peças do inventário.
-  - **Controlo de Qualidade (CQ):** Engenheiros e Admins podem adicionar, editar e apagar registos de inspeção.
-- **Dashboards de Leitura:**
-  - **Linhas de Montagem:** Uma visão geral do estado de todas as linhas de produção.
-  - **Relatórios:** Uma página de KPIs agregados, visível apenas para `admin`.
- 
+## Objetivos
 
----
+- Centralizar a gestão de aeronaves, etapas, peças e testes.
+- Permitir rastreabilidade operacional durante o fluxo de produção.
+- Melhorar a experiência do usuário em relação à versão CLI.
+- Implementar controle de permissões baseado em perfil.
+- Validar fluxos completos de operação por meio de wireframes e user flows.
 
-## 🚀 Como Rodar o Projeto
- 
-Siga os passos abaixo para configurar e executar o projeto em sua máquina local.
- 
+## Público-Alvo
+
+- Engenheiros de Produção e Aeronáuticos.
+- Operadores de montagem.
+- Gestores de Controle de Qualidade.
+- Administradores do sistema.
+
+## Funcionalidades
+
+- **Autenticação e controle de perfis:** acesso por Administrador, Engenheiro e Operador.
+- **Dashboard principal:** indicadores consolidados de aeronaves, etapas, peças e testes.
+- **Gestão de Aeronaves:** cadastro, edição, listagem e exclusão de aeronaves.
+- **Gestão de Etapas:** acompanhamento do fluxo de montagem das aeronaves.
+- **Gestão de Peças:** rastreamento de componentes, fornecedores e status logísticos.
+- **Gestão de Testes:** registro e acompanhamento de testes elétricos, hidráulicos e aerodinâmicos.
+- **Gestão de Relatórios:** geração de snapshots operacionais das aeronaves.
+- **Gestão de Funcionários:** administração de usuários e permissões do sistema.
+
+## Perfis de Acesso
+
+### Administrador
+
+Possui acesso total ao sistema:
+
+- Dashboard
+- Aeronaves
+- Etapas
+- Peças
+- Testes
+- Relatórios
+- Funcionários
+
+Também possui permissões completas de CRUD: criar, visualizar, atualizar e excluir registros.
+
+### Engenheiro
+
+Possui acesso operacional às funcionalidades produtivas do sistema:
+
+- Dashboard
+- Aeronaves
+- Etapas
+- Peças
+- Testes
+
+Não possui acesso às páginas de Relatórios e Funcionários.
+
+### Operador
+
+Possui os mesmos acessos visuais do Engenheiro, mas com restrições de edição em:
+
+- Aeronaves
+- Etapas
+- Peças
+- Testes
+
+A ação operacional permitida ao Operador é a movimentação de peças pela opção de alteração de status na página de Peças.
+
+## Tecnologias
+
+- **React.js:** biblioteca principal para construção da interface.
+- **Vite.js:** ambiente de desenvolvimento e build.
+- **React Router:** gerenciamento de rotas da SPA.
+- **Tailwind CSS:** estilização da interface.
+- **React Context:** estado global de autenticação.
+- **Lucide React:** biblioteca de ícones.
+
+## Estrutura do Projeto
+
+```text
+Aerocode-AV2/
++-- aerocode-gui/              # Aplicação frontend
+|   +-- src/
+|   |   +-- components/        # Componentes reutilizáveis
+|   |   +-- context/           # Contextos globais
+|   |   +-- data/              # Dados locais de apoio
+|   |   +-- pages/             # Páginas da aplicação
+|   |   +-- services/          # API mockada e cliente de API
+|   |   +-- utils/             # Regras de permissão
+|   +-- package.json
++-- docs/                      # Relatórios, wireframes e materiais de apoio
+```
+
+## Dados e Persistência
+
+Por padrão, o projeto usa uma API mockada no frontend. Os dados iniciais são fictícios e ficam salvos no `localStorage` do navegador durante os testes.
+
+Para conectar a aplicação a uma API real, ajuste a variável no arquivo `.env`:
+
+```env
+VITE_USE_MOCK_API=false
+```
+
+## Como Rodar
+
 ### Pré-requisitos
 
-Você precisa ter o **Node.js** (versão 20.19.0 ou superior) e o **npm** instalados em seu computador.
- 
-### 1. Clone o Repositório
+- Node.js 20.19.0 ou superior.
+- npm instalado.
+
+### Instalação
 
 ```bash
 git clone https://github.com/Marianatebecherani/Aerocode-AV2.git
-```
- 
-Navegue para a pasta do projeto
-
-```bash
-cd aerocode-gui
-```
-
-### 2. Instale as Dependências
-
-Este comando irá instalar todos os pacotes necessários (React, React Router, Lucide, etc.).
-
-```bash
+cd Aerocode-AV2/aerocode-gui
 npm install
 ```
 
-### 3. Inicie o Servidor de Desenvolvimento
-
-Após a instalação, inicie o servidor de desenvolvimento Vite:
+### Desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-O terminal irá mostrar um URL local. Abra-o no seu navegador (normalmente `http://localhost:5173`).
+Abra a URL exibida no terminal, normalmente `http://localhost:5173`.
 
----
+### Build
 
-## 🔑 Perfis de Teste
+```bash
+npm run build
+```
 
-A aplicação irá redirecioná-lo para a página de Login. Utilize qualquer um dos seguintes perfis para testar as diferentes permissões:
+## Perfis de Teste
 
-#### Perfil 1: Administrador
-- **Username:** `gerson.admin`
-- **Password:** `adminpassword`
+### Administrador
 
-#### Perfil 2: Engenheiro
-- **Username:** `mariana.eng`
-- **Password:** `engpassword`
+- **Usuário:** `gerson.admin`
+- **Senha:** `adminpassword`
 
-#### Perfil 3: Operador
-- **Username:** `joao.op`
-- **Password:** `oppassword`
+### Engenheiro
 
----
+- **Usuário:** `mariana.eng`
+- **Senha:** `engpassword`
 
-Feito por Mariana Tebecherani.
- 
+### Operador
+
+- **Usuário:** `joao.op`
+- **Senha:** `oppassword`
+
+## Documentação
+
+Os materiais de apoio estão na pasta `docs/`, incluindo:
+
+- `Relatorio_Aerocode_2026.pdf`
+- wireframes low quality
+- user flows
+- capturas das telas do protótipo
+
+## Autoria
+
+Desenvolvido por Mariana Rebelo Tebecherani.
